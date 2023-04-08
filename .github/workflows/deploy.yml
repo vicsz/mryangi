@@ -1,0 +1,33 @@
+name: Deploy to Ionos
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install SSH and SFTP plugins
+      run: |
+        sudo apt-get update
+        sudo apt-get install sshpass lftp
+    
+    - name: Update index.html with build information
+      run: |
+        RUN_NUMBER="${{ github.run_number }}"
+        BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M:%S %Z')"
+        sed -i "s|<body>|<!-- Build: $RUN_NUMBER - Date: $BUILD_DATE --><body>|" site/index.html
+
+    - name: Upload files using SFTP
+      env:
+        SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+        SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        SFTP_HOST: ${{ secrets.SFTP_HOST }}
+        SFTP_PORT: 22
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -t rsa -p $SFTP_PORT $SFTP_HOST >> ~/.ssh/known_hosts
+        lftp -e "set sftp:auto-confirm yes; mirror -R site/ /; exit" -u $SFTP_USERNAME,$SFTP_PASSWORD sftp://$SFTP_HOST:$SFTP_PORT
