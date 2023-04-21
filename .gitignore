@@ -1,1 +1,20 @@
+# Generated files and folders
+/public/
+/resources/_gen/
+
+# Temporary files created by text editors or operating systems
+*.bak
+*.swp
+*.swo
+*.tmp
+*.temp
+*~
 .DS_Store
+Thumbs.db
+
+# Hugo's cache
+.hugo_build.lock
+.hugo_build_errors.json
+
+# Node.js dependencies for themes or site building
+node_modules/
